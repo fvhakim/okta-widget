@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://ok1static.oktacdn.com/assets/js/sdk/okta-signin-widget/2.14.0/js/okta-sign-in.min.js" type="text/javascript"></script>
+    <link href="https://ok1static.oktacdn.com/assets/js/sdk/okta-signin-widget/2.14.0/css/okta-sign-in.min.css" type="text/css" rel="stylesheet" />
+    <link href="https://ok1static.oktacdn.com/assets/js/sdk/okta-signin-widget/2.14.0/css/okta-theme.css" type="text/css" rel="stylesheet" />
+    <style>
+    /*.primary-auth .o-form-input-name-username.o-form-control.okta-form-input-field.input-fix{display: none;}*/
+    </style>
+</head>
+
+<body>
+    <br />
+    <div id="okta-login-container"></div>
+    <div id="message"></div>
+    <script type="text/javascript">
+    var oktaSignIn = new OktaSignIn({
+        baseUrl: "https://tkirk.oktapreview.com",
+        clientId: "0oaehky6ipfcqIoKT0h7",
+        authParams: {
+            issuer: "https://tkirk.oktapreview.com/oauth2/ausaa0fzc3CUSHayR0h7",
+            responseType: ['token', 'id_token'],
+            display: 'page'
+        },
+        features: {
+            // Used to enable the idp discovery feature on the widget.
+            // REQUIRED
+            idpDiscovery: true
+        },
+      idpDiscovery: {
+        requestContext: '/home/oidc_client/0oaehky6ipfcqIoKT0h7/aln5z7uhkbM6y7bMy0g7',
+      },
+
+    });
+    if (oktaSignIn.token.hasTokensInUrl()) {
+        oktaSignIn.token.parseTokensFromUrl(
+            function success(res) {
+                // The tokens are returned in the order requested by `responseType` above
+                var accessToken = res[0];
+                var idToken = res[1]
+
+                // Say hello to the person who just signed in:
+                console.log('Hello, ' + idToken.claims.email);
+
+                // Save the tokens for later use, e.g. if the page gets refreshed:
+                oktaSignIn.tokenManager.add('accessToken', accessToken);
+                oktaSignIn.tokenManager.add('idToken', idToken);
+
+                // Remove the tokens from the window location hash
+                window.location.hash = '';
+            },
+            function error(err) {
+                // handle errors as needed
+                console.error(err);
+            }
+        );
+    } else {
+        oktaSignIn.session.get(function(res) {
+            // Session exists, show logged in state.
+            if (res.status === 'ACTIVE') {
+                console.log('Welcome back, ' + res.login);
+                return;
+            }
+            // No session, show the login form
+            oktaSignIn.renderEl({ el: '#okta-login-container' },
+                function success(res) {
+                    if (res.status == 'IDP_DISCOVERY') {
+                        console.log(res);
+                        //this value is App Embed Link of of the OIDC client in Okta
+                        //you may need to turn on this feature using the "Login Initiated By" field on the OIDC app in Okta
+                        res.idpDiscovery.redirectToIdp();
+                        return;
+                    }
+                },
+                function error(err) {
+                    // handle errors as needed
+                    console.error(err);
+                }
+            );
+        });
+    }
+    </script>
+</body>
+
+</html>
